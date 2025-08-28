@@ -1,0 +1,26 @@
+---
+config:
+  layout: dagre
+---
+flowchart TD
+ subgraph Client["Client (Optional)"]
+        A["User Browser / Mobile App"]
+  end
+ subgraph Auth["Auth"]
+        B["Keycloak<br>Auth &amp; Authorization"]
+  end
+ subgraph Backend["Backend"]
+        C["FastAPI<br>Middleware &amp; API Layer"]
+        D["Redis<br>Session/OTP Management"]
+        E["PostgreSQL<br>Data Storage"]
+        F["SMTP Server<br>Email Delivery"]
+        G["SMS API<br>SMS Delivery"]
+  end
+    A -- Login / Token Request --> B
+    B -- JWT / Access Token --> A
+    A -- Authenticated Request --> C
+    C -- Validate Token --> B
+    C -- Read/Write --> E
+    C -- Store/Retrieve Sessions/OTP --> D
+    C -- Send Email --> F
+    C -- Send SMS --> G

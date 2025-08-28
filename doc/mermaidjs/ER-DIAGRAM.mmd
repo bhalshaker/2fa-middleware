@@ -1,0 +1,13 @@
+erDiagram
+    user_profiles {
+        INTEGER id PK "Primary Key"
+        VARCHAR username "Unique username"
+        VARCHAR mobile_number "User's mobile phone"
+        BOOLEAN is_mobile_number_verified "Has the mobile number been varified?"
+        VARCHAR email_address "User's email address"
+        BOOLEAN is_email_address_verified "Has the email address been varified?"
+        TEXT totp_secret_encrypted "Encrypted TOTP secret for 2FA"
+        BOOLEAN is_totp_verified "Has the TOTP secret been verified?"
+        TIMESTAMP created_at "Record creation timestamp"
+        TIMESTAMP updated_at "Last update timestamp"
+    }
