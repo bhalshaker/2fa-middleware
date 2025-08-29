@@ -2,33 +2,28 @@
 
 ![Project Logo](doc/images/2fa-logo.png)
 
-2FA-Middleware is a secure authentication middleware for FastAPI applications, integrating Keycloak for user authentication and 2-factor authentication (2FA) via email, Time-based One-Time Password (TOTP), and SMS. It provides a robust and flexible authentication solution for frontend applications. In this project a simple React frontend application will be used to demonistrate this concept.
+**2FA-Middleware** is a secure authentication middleware for FastAPI applications, integrating **Keycloak** for user authentication and **two-factor authentication (2FA)** via email, Time-based One-Time Password (TOTP), and SMS. It offers a robust and flexible authentication solution for frontend applications.
 
-## Key features:
+## 🔑 Key features:
 
-- Keycloak Integration: Seamlessly integration Keycloak for user management and authentication, leveraging its robust identity and integrate external identity providers.
-- 2-Factor Authentication: Implement 2FA using various methods, including email, TOTP (e.g., Google Authenticator), and SMS, ensuring an additional layer of security for your application.
-- OTP SMS and Email confirmations.
+- **Keycloak Integration**: Seamlessly integrates Keycloak for user management and authentication, leveraging its robust identity capabilities and support for external identity providers.
+- **Two-Factor Authentication**: Implements 2FA using multiple methods—email, TOTP (e.g., Google Authenticator), and SMS—to provide an additional layer of security.
+- **OTP Delivery**: Supports OTP delivery via SMS and email for verification and confirmation.
 
-## Architecture
+## 🧱 Architecture
 
-- Keycloak handles authentication and issues JWT tokens.
-
-- FastAPI acts as the central orchestrator, validating tokens and routing requests.
-
-- PostgreSQL stores persistent data like user profiles, transactions, etc.
-
-- Redis manages session data for quick access and scalability.
-
-- SMTP is used by FastAPI to send emails.
-
-- SMS API is triggered by FastAPI to send messages.
+- **Keycloak** handles authentication and issues JWT tokens.
+- **FastAPI** acts as the central orchestrator, validating tokens and routing requests.
+- **PostgreSQL** stores persistent data such as user profiles and transactions.
+- **Redis** manages session data for fast access and scalability.
+- **SMTP** is used by FastAPI to send email-based OTPs.
+- **SMS API** is triggered by FastAPI to send OTPs via SMS.
 
 ![2FA Middleware Architecture](doc/images/2FA-MIDDLEWARE_ARCH.svg)
 
-## RDBMS Schema
+## 🗃️ RDBMS Schema
 
-RDBMS schema consists of a single table, user_profile.
+The relational database schema consists of a single table: `user_profile`.
 
 ![ER Diagram](doc/images/ER-DIAGRAM.svg)
 
@@ -44,7 +39,7 @@ RDBMS schema consists of a single table, user_profile.
 
 ## Recommended Run Environment
 
-(Based on preequirests all requirements covered in DockerCompose file)
+_(All requirements are covered in the provided Docker Compose file)_
 
 - 🦭 Podman/ 🐋 Docker
 - 🌐 Internet connection
@@ -56,14 +51,14 @@ RDBMS schema consists of a single table, user_profile.
 
 ### ⚙️ FastAPI Routes
 
-| HTTP Method | Endpoint          | Description                                 | Who Can Access?             |
-| ----------- | ----------------- | ------------------------------------------- | --------------------------- |
-| GET         | /metrics          | Returned prometheus_client metrics          | Public                      |
-| POST        | /user             | Register first time logged in Keyclock user | Authenticated Keyclock user |
-| GET         | /user             | Get current user details                    | Authenticated Keyclock user |
-| UPDATE      | /user             | Manual update for user mobile/email         | Authenticated Keyclock user |
-| POST        | /user/verify-otp  | Verify received OTP                         | Authenticated Keyclock user |
-| POST        | /user/verift-totp | Vertify access for session                  | Authenticated Keyclock user |
+| HTTP Method | Endpoint            | Description                                      | Who Can Access?             |
+| ----------- | ------------------- | ------------------------------------------------ | --------------------------- |
+| GET         | `/metrics`          | Returns Prometheus metrics                       | Public                      |
+| POST        | `/user`             | Registers first-time Keycloak-authenticated user | Authenticated Keyclock user |
+| GET         | `/user`             | Retrieves current user details                   | Authenticated Keyclock user |
+| UPDATE      | `/user`             | Updates user mobile/email manually               | Authenticated Keyclock user |
+| POST        | `/user/verify-otp`  | erifies received OTP                             | Authenticated Keyclock user |
+| POST        | `/user/verift-totp` | Verifies session access using TOTP               | Authenticated Keyclock user |
 
 ## 📦 Libraries Used
 
