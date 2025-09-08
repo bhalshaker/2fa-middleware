@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "2fa_fastapi"
+    static_configs:
+      - targets: ["2fa_middleware:8000"]
