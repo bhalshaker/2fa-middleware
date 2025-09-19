@@ -1,15 +1,48 @@
+import asyncpg
 from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from app.config.settings import Settings
+from app.config.settings import settings
+import logging
 
-# Create an asynchronous engine and configurre pool size
-engine = create_async_engine(url=Settings.pg_db_url, pool_size=Settings.pg_db_pool_size, max_overflow=Settings.pg_db_max_overflow)
-# Create an asynchronous session factory using async_sessionmaker
-SessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
+logger = logging.getLogger(__name__)
 
-async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
-    """
-    Yields a database session as a dependency.
-    """
-    async with SessionLocal() as session:
-        yield session
+# Global variable for the connection pool
+db_pool = None
+
+async def create_db_pool():
+    """Initializes the database connection pool."""
+
+    # Consider db_pool variable global
+    global db_pool
+    # Create the pool connection
+    db_pool = await asyncpg.create_pool(
+        user=settings.pg_db_user,
+        password=settings.pg_db_password,
+        database=settings.pg_db_database,
+        host=settings.pg_db_host,
+        port=settings.pg_db_port,
+        min_size=settings.pg_db_pool_min_size,
+        max_size=settings.pg_db_pool_max_size
+    )
+    logger.info("🛢️ Database connection pool created.")
+
+async def close_db_pool():
+    """Closes the database connection pool."""
+
+    # Consider db_pool variable global
+    global db_pool
+
+    # Close db_pool if it is not null
+    if db_pool:
+        await db_pool.close()
+        logger.info("🛢️Database connection pool closed.")
+
+async def get_db_connection() -> AsyncGenerator[asyncpg.Connection, None]:
+    """Dependency that yields a connection from the pool."""
+
+    # if db_pool is not created raise a Connection errors
+    if db_pool is None:
+        logger.info("🛢️ Database connection pool was not initialized.")
+        raise ConnectionError("Database pool is not initialized.")
+    # Return a connection
+    async with db_pool.acquire() as connection:
+        yield connection
