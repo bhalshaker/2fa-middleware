@@ -20,6 +20,8 @@ async def create_db_pool():
         database=settings.pg_db_database,
         host=settings.pg_db_host,
         port=settings.pg_db_port,
+        min_size=settings.pg_db_pool_min_size,
+        max_size=settings.pg_db_pool_max_size
     )
     logger.info("🛢️ Database connection pool created.")
 
@@ -36,6 +38,8 @@ async def close_db_pool():
 
 async def get_db_connection() -> AsyncGenerator[asyncpg.Connection, None]:
     """Dependency that yields a connection from the pool."""
+
+    # if db_pool is not created raise a Connection errors
     if db_pool is None:
         logger.info("🛢️ Database connection pool was not initialized.")
         raise ConnectionError("Database pool is not initialized.")
