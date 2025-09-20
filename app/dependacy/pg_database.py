@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 # Global variable for the connection pool
 db_pool = None
 
-async def create_db_pool():
+async def create_pg_db_pool():
     """Initializes the database connection pool."""
 
     # Consider db_pool variable global
@@ -25,7 +25,7 @@ async def create_db_pool():
     )
     logger.info("🛢️ Database connection pool created.")
 
-async def close_db_pool():
+async def close_pg_db_pool():
     """Closes the database connection pool."""
 
     # Consider db_pool variable global
@@ -36,7 +36,7 @@ async def close_db_pool():
         await db_pool.close()
         logger.info("🛢️Database connection pool closed.")
 
-async def get_db_connection() -> AsyncGenerator[asyncpg.Connection, None]:
+async def get_pg_db_connection() -> AsyncGenerator[asyncpg.Connection, None]:
     """Dependency that yields a connection from the pool."""
 
     # if db_pool is not created raise a Connection errors
