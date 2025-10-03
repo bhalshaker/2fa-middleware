@@ -84,3 +84,9 @@ _(All requirements are covered in the provided Docker Compose file)_
 | **Pytest**    | Framework for writing and running unit tests                      |
 | **httpx**     | Used for testing HTTP endpoints with async support                |
 | **fakeredis** | Simulates Redis for testing without requiring a live Redis server |
+
+## 📢 Attributes
+
+- [Keyclock](https://www.keycloak.org/)
+- [Twilio](https://www.twilio.com/)
+- [Resend](https://www.resend.com)
