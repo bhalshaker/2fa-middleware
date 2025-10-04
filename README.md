@@ -51,14 +51,15 @@ _(All requirements are covered in the provided Docker Compose file)_
 
 ### ⚙️ FastAPI Routes
 
-| HTTP Method | Endpoint            | Description                                      | Who Can Access?             |
-| ----------- | ------------------- | ------------------------------------------------ | --------------------------- |
-| GET         | `/metrics`          | Returns Prometheus metrics                       | Public                      |
-| POST        | `/user`             | Registers first-time Keycloak-authenticated user | Authenticated Keyclock user |
-| GET         | `/user`             | Retrieves current user details                   | Authenticated Keyclock user |
-| UPDATE      | `/user`             | Updates user mobile/email manually               | Authenticated Keyclock user |
-| POST        | `/user/verify-otp`  | Verifies received OTP                            | Authenticated Keyclock user |
-| POST        | `/user/verift-totp` | Verifies session access using TOTP               | Authenticated Keyclock user |
+| HTTP Method | Endpoint              | Description                                      | Who Can Access?             |
+| ----------- | --------------------- | ------------------------------------------------ | --------------------------- |
+| GET         | `/metrics`            | Returns Prometheus metrics                       | Public                      |
+| POST        | `/user`               | Registers first-time Keycloak-authenticated user | Authenticated Keyclock user |
+| GET         | `/user`               | Retrieves current user details                   | Authenticated Keyclock user |
+| UPDATE      | `/user`               | Updates user mobile/email manually               | Authenticated Keyclock user |
+| POST        | `/user/verify-otp`    | Verifies received OTP                            | Authenticated Keyclock user |
+| POST        | `/user/generate-totp` | Request generation of new TOTP                   | Authenticated Keycloak user |
+| POST        | `/user/verift-totp`   | Verifies session access using TOTP               | Authenticated Keyclock user |
 
 ## 📦 Libraries Used
 
@@ -87,6 +88,6 @@ _(All requirements are covered in the provided Docker Compose file)_
 
 ## 📢 Attributes
 
-- [Keyclock](https://www.keycloak.org/)
+- [Keycloak](https://www.keycloak.org/)
 - [Twilio](https://www.twilio.com/)
 - [Resend](https://www.resend.com)

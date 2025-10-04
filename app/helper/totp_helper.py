@@ -84,3 +84,35 @@ class TOTPHelper():
         # Generate the seed URI and QR code image
         totp_info= TOTPHelper.generate_seed_uri_image(seed, username)
         return SeedFullInfo(seed=seed,user_name=username,seed_uri=totp_info.seed_uri,qrcode=totp_info.qrcode)
+    
+    @staticmethod
+    def encrypt_seed(seed:str)->str:
+        """
+        Encrypt the TOTP seed using Base64 encoding.
+        Args:
+            seed (str): The TOTP secret seed.
+        Returns:
+            str: The Base64 encoded string of the seed.
+        """
+        # Encode the Base64 string to bytes
+        base64_bytes = seed.encode('utf-8')
+        # Perform Base64 encoding
+        encoded_bytes = base64.b64encode(base64_bytes)
+        # Return econding string by decoding the bytes
+        return encoded_bytes.decode('utf-8')
+
+    @staticmethod
+    def decrypt_seed(encryped_seed:str)->str:
+        """
+        Decrypt the TOTP seed using Base64 decoding.
+        Args:
+            encryped_seed (str): The Base64 encoded string of the seed.
+        Returns:
+            str: The TOTP secret seed.
+        """
+        # Encode the Base64 string to bytes
+        base64_bytes = encryped_seed.encode('utf-8')
+        # Perform Base64 decoding
+        decoded_bytes = base64.b64decode(base64_bytes)
+        # Return orginal string by decoding the bytes
+        return decoded_bytes.decode('utf-8')
