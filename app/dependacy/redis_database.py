@@ -17,7 +17,7 @@ async def create_redis_db_pool():
         settings.redis_url,
         encoding="utf-8",
         decode_responses=True,
-        max_connections=settings.redis_max_connections  # You can adjust this value
+        max_connections=settings.redis_max_connections
     )
     logger.info("⛁ Redis connection pool created.")
 
