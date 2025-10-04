@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing_extensions import Self
 from typing import Optional
-from pydantic import BaseModel,EmailStr,model_validator
+from pydantic import BaseModel,EmailStr,model_validator,constr
 from uuid import uuid4
 
 @dataclass
@@ -17,12 +17,23 @@ class KeycloakUserInfo():
     mobile:Optional[str]=None
     mobile_verified:Optional[bool]=None
 
+class UserProfileInfo(BaseModel):
+    username:str
+    first_name:str
+    last_name:str
+    email:str
+    email_verified:Optional[bool]=None
+    mobile:Optional[str]=None
+    mobile_verified:Optional[bool]=None
+
+
 class UpdateUserInfo(BaseModel):
     """Model to update user information"""
 
     username:str
     email:Optional[EmailStr]=None
-    mobile:Optional[str]=None
+    from pydantic import Field
+    mobile: Optional[constr] = Field(default=None, regex=r'^\+973\d{8}$')
 
     @model_validator(mode='after')
     def check_atleast_one_value(self)->Self:
