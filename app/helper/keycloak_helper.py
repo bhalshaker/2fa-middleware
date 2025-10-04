@@ -9,7 +9,7 @@ class KeycloakHelper:
     @staticmethod
     def get_customized_attribute_value(attributes: dict, key: str):
         """Extracts a specific attribute value from a dictionary of attributes."""
-        attribute_value = attributes.get(key, [])
+        attribute_value = attributes.get(key, [""])
         return attribute_value[0] if isinstance(attribute_value, list) and attribute_value else None
 
     @staticmethod
@@ -129,6 +129,7 @@ class KeycloakHelper:
                 if matching_user_info==None:
                     raise NoMatchingUserError()
             # Return Matching username info
+            mobile_verified=True if str(KeycloakHelper.get_customized_attribute_value(matching_user_info.get("attributes",{}),"mobileVerified")).lower == "true" else False
             return KeycloakUserInfo(id=matching_user_info.get("id"),
                                     username=matching_user_info.get("username"),
                                     first_name=matching_user_info.get("firstName"),
@@ -136,7 +137,7 @@ class KeycloakHelper:
                                     email=matching_user_info.get("email"),
                                     email_verified=matching_user_info.get("emailVerified"),
                                     mobile=KeycloakHelper.get_customized_attribute_value(matching_user_info.get("attributes",{}),"mobile"),
-                                    mobile_verified=KeycloakHelper.get_customized_attribute_value(matching_user_info.get("attributes",{}),"mobileVerified"),
+                                    mobile_verified=mobile_verified
                                     )
             
         except Exception as exc:
@@ -150,7 +151,7 @@ class KeycloakHelper:
             if retrieved_user_info.id == None:
                 raise NoMatchingUserError()
             mobile=[retrieved_user_info.mobile] if retrieved_user_info.mobile else []
-            mobile_verified=[retrieved_user_info.mobile_verified] if retrieved_user_info.mobile_verified else []
+            mobile_verified=["true"] if retrieved_user_info.mobile_verified else ["false"]
             # Update payload
             payload={
                         "firstName": retrieved_user_info.first_name,
@@ -159,7 +160,7 @@ class KeycloakHelper:
                         "emailVerified": True if userinfo.email else retrieved_user_info.email_verified,
                         "attributes": {
                             "mobile": [userinfo.mobile] if userinfo.mobile else mobile,
-                            "mobileVerified":[True if userinfo.mobile else mobile_verified]
+                            "mobileVerified":["true"] if userinfo.mobile else mobile_verified
                         }
                     }
             # Generate Admin token
