@@ -15,7 +15,7 @@ class KeycloakUserInfo():
     email:Optional[str]=None
     email_verified:Optional[bool]=None
     mobile:Optional[str]=None
-    mobile_verified:Optional[str]=None
+    mobile_verified:Optional[bool]=None
 
 class UpdateUserInfo(BaseModel):
     """Model to update user information"""
