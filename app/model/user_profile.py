@@ -9,6 +9,8 @@ class UserProfile(Base):
 
     id = Column(Integer,primary_key=True)
     username = Column(String,nullable=False,unique=True)
+    first_name=Column(String,nullable=True)
+    last_name=Column(String,nullable=True)
     mobile_number= Column(String,nullable=True)
     is_mobile_number_verified=Column(Boolean,nullable=True)
     email_address=Column(String,nullable=True)
