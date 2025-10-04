@@ -2,46 +2,7 @@ import httpx
 from app.config.settings import settings
 from app.schema.token import TokenGenerationResponse,TokenValidationResponse
 from app.schema.user import KeycloakUserInfo,UpdateUserInfo,UpdateUserResults
-
-class TokenValidationError(Exception):
-    """Token Validation Error class."""
-
-    def __init__(self, message="Token is not active.", code=None):
-        self.message = message
-        self.code = code
-        super().__init__(self.message) # Call the base Exception constructor
-
-    def __str__(self):
-        if self.code:
-            return f"Error Code {self.code}: {self.message}"
-        return self.message
-
-class TokenGenerationError(Exception):
-    """Token Generation Error class."""
-
-    def __init__(self, message="Token Could not be generated.", code=None):
-        self.message = message
-        self.code = code
-        super().__init__(self.message) # Call the base Exception constructor
-
-    def __str__(self):
-        if self.code:
-            return f"Error Code {self.code}: {self.message}"
-        return self.message
-
-class NoMatchingUserError(Exception):
-    """No Matching User Error class."""
-
-    def __init__(self, message="User could not be matched.", code=None):
-        self.message = message
-        self.code = code
-        super().__init__(self.message) # Call the base Exception constructor
-
-    def __str__(self):
-        if self.code:
-            return f"Error Code {self.code}: {self.message}"
-        return self.message
-
+from app.exception.exceptions import TokenValidationError,TokenGenerationError,NoMatchingUserError
 
 class KeycloakHelper:
 
@@ -122,7 +83,7 @@ class KeycloakHelper:
                 # Load response into token_data
                 validation_data = response.json()
                 if validation_data.get("active")==False:
-                    raise TokenValidationError
+                    raise TokenValidationError()
                 # Return username
                 return TokenValidationResponse(
                     success=True,
@@ -149,7 +110,7 @@ class KeycloakHelper:
             admin_token=await KeycloakHelper.get_admin_token()
             # Raise an error if Admin token cannot be generated
             if not(admin_token.successful):
-                raise TokenGenerationError
+                raise TokenGenerationError()
             # Generate Token validation URL
             search_user_url = f"{settings.keycloack_url}/admin/realms/{settings.keycloack_realm}/users?username={username}"
             # Define request header
@@ -166,7 +127,7 @@ class KeycloakHelper:
                         matching_user_info=user
                 # If no matching user was found raise an Error
                 if matching_user_info==None:
-                    raise NoMatchingUserError
+                    raise NoMatchingUserError()
             # Return Matching username info
             return KeycloakUserInfo(id=matching_user_info.get("id"),
                                     username=matching_user_info.get("username"),
@@ -187,7 +148,7 @@ class KeycloakHelper:
             # Get Matching User info and if there is no match raise an Error
             retrieved_user_info=await KeycloakHelper.return_matching_user_info(userinfo.username)
             if retrieved_user_info.id == None:
-                raise NoMatchingUserError
+                raise NoMatchingUserError()
             mobile=[retrieved_user_info.mobile] if retrieved_user_info.mobile else []
             mobile_verified=[retrieved_user_info.mobile_verified] if retrieved_user_info.mobile_verified else []
             # Update payload
