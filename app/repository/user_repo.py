@@ -17,6 +17,20 @@ class UserRepository():
         """
         result = await db.execute(select(UserProfile).where(UserProfile.username == username))
         return result.scalars().first()
+    @staticmethod
+    async def create_new_user(user_profile:UserProfile,db: AsyncSession)->UserProfile:
+        """
+         Create a new user.
+         Args:
+            user_profile (UserProfile): User profile info.
+            db (AsyncSession): The database session. 
+        Returns:
+            UserProfile: Get refereshed user profile info.
+        """
+        db.add(user_profile)
+        await db.commit()
+        await db.refresh(user_profile)
+        return user_profile
 
     @staticmethod
     async def update_user_totp(username:str,seed:str,db: AsyncSession)->UserProfile|None:

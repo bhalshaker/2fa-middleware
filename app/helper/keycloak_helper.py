@@ -2,53 +2,14 @@ import httpx
 from app.config.settings import settings
 from app.schema.token import TokenGenerationResponse,TokenValidationResponse
 from app.schema.user import KeycloakUserInfo,UpdateUserInfo,UpdateUserResults
-
-class TokenValidationError(Exception):
-    """Token Validation Error class."""
-
-    def __init__(self, message="Token is not active.", code=None):
-        self.message = message
-        self.code = code
-        super().__init__(self.message) # Call the base Exception constructor
-
-    def __str__(self):
-        if self.code:
-            return f"Error Code {self.code}: {self.message}"
-        return self.message
-
-class TokenGenerationError(Exception):
-    """Token Generation Error class."""
-
-    def __init__(self, message="Token Could not be generated.", code=None):
-        self.message = message
-        self.code = code
-        super().__init__(self.message) # Call the base Exception constructor
-
-    def __str__(self):
-        if self.code:
-            return f"Error Code {self.code}: {self.message}"
-        return self.message
-
-class NoMatchingUserError(Exception):
-    """No Matching User Error class."""
-
-    def __init__(self, message="User could not be matched.", code=None):
-        self.message = message
-        self.code = code
-        super().__init__(self.message) # Call the base Exception constructor
-
-    def __str__(self):
-        if self.code:
-            return f"Error Code {self.code}: {self.message}"
-        return self.message
-
+from app.exception.exceptions import TokenValidationError,TokenGenerationError,NoMatchingUserError
 
 class KeycloakHelper:
 
     @staticmethod
     def get_customized_attribute_value(attributes: dict, key: str):
         """Extracts a specific attribute value from a dictionary of attributes."""
-        attribute_value = attributes.get(key, [])
+        attribute_value = attributes.get(key, [""])
         return attribute_value[0] if isinstance(attribute_value, list) and attribute_value else None
 
     @staticmethod
@@ -122,7 +83,7 @@ class KeycloakHelper:
                 # Load response into token_data
                 validation_data = response.json()
                 if validation_data.get("active")==False:
-                    raise TokenValidationError
+                    raise TokenValidationError()
                 # Return username
                 return TokenValidationResponse(
                     success=True,
@@ -149,7 +110,7 @@ class KeycloakHelper:
             admin_token=await KeycloakHelper.get_admin_token()
             # Raise an error if Admin token cannot be generated
             if not(admin_token.successful):
-                raise TokenGenerationError
+                raise TokenGenerationError()
             # Generate Token validation URL
             search_user_url = f"{settings.keycloack_url}/admin/realms/{settings.keycloack_realm}/users?username={username}"
             # Define request header
@@ -166,8 +127,9 @@ class KeycloakHelper:
                         matching_user_info=user
                 # If no matching user was found raise an Error
                 if matching_user_info==None:
-                    raise NoMatchingUserError
+                    raise NoMatchingUserError()
             # Return Matching username info
+            mobile_verified=True if str(KeycloakHelper.get_customized_attribute_value(matching_user_info.get("attributes",{}),"mobileVerified")).lower == "true" else False
             return KeycloakUserInfo(id=matching_user_info.get("id"),
                                     username=matching_user_info.get("username"),
                                     first_name=matching_user_info.get("firstName"),
@@ -175,7 +137,7 @@ class KeycloakHelper:
                                     email=matching_user_info.get("email"),
                                     email_verified=matching_user_info.get("emailVerified"),
                                     mobile=KeycloakHelper.get_customized_attribute_value(matching_user_info.get("attributes",{}),"mobile"),
-                                    mobile_verified=KeycloakHelper.get_customized_attribute_value(matching_user_info.get("attributes",{}),"mobileVerified"),
+                                    mobile_verified=mobile_verified
                                     )
             
         except Exception as exc:
@@ -187,9 +149,9 @@ class KeycloakHelper:
             # Get Matching User info and if there is no match raise an Error
             retrieved_user_info=await KeycloakHelper.return_matching_user_info(userinfo.username)
             if retrieved_user_info.id == None:
-                raise NoMatchingUserError
+                raise NoMatchingUserError()
             mobile=[retrieved_user_info.mobile] if retrieved_user_info.mobile else []
-            mobile_verified=[retrieved_user_info.mobile_verified] if retrieved_user_info.mobile_verified else []
+            mobile_verified=["true"] if retrieved_user_info.mobile_verified else ["false"]
             # Update payload
             payload={
                         "firstName": retrieved_user_info.first_name,
@@ -198,7 +160,7 @@ class KeycloakHelper:
                         "emailVerified": True if userinfo.email else retrieved_user_info.email_verified,
                         "attributes": {
                             "mobile": [userinfo.mobile] if userinfo.mobile else mobile,
-                            "mobileVerified":[True if userinfo.mobile else mobile_verified]
+                            "mobileVerified":["true"] if userinfo.mobile else mobile_verified
                         }
                     }
             # Generate Admin token

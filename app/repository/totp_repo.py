@@ -11,10 +11,16 @@ class TOTPRepository():
             db (aioredis.Redis): redis client instance
             username (str): username of the user want to store totp
             seed (str): totp seed to store
+        Return:
+            bool : True if successful and False is not successful
         """
-        # Store TOTP with a key pattern: username:totp
-        key = f"{username}:totp"
-        await db.set(key, seed, ex=settings.redit_ttl)
+        try:
+            # Store TOTP with a key pattern: username:totp
+            key = f"{username}:totp"
+            await db.set(key, seed, ex=settings.redit_ttl)
+            return True
+        except Exception as exc:
+            return False
 
     @staticmethod
     async def get_totp_seed(db:aioredis.Redis, username:str) -> str | None:
