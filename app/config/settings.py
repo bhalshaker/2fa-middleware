@@ -18,7 +18,7 @@ class Settings:
     # Redis Settings
     redis_url:str
     redis_max_connections:int
-    redit_ttl:int
+    redis_ttl:int
     # Keycloak Settings
     keycloak_url:str
     keycloak_realm:str
