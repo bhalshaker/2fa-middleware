@@ -17,7 +17,7 @@ class TOTPRepository():
         try:
             # Store TOTP with a key pattern: username:totp
             key = f"{username}:totp"
-            await db.set(key, seed, ex=settings.redit_ttl)
+            await db.set(key, seed, ex=settings.redis_ttl)
             return True
         except Exception as exc:
             return False

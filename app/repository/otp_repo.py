@@ -15,7 +15,7 @@ class OTPRepository():
         """
         # Store OTP with a key pattern: username:email:<email>
         key = f"{username}:email:{email}"
-        await db.set(key, otp, ex=settings.redit_ttl)
+        await db.set(key, otp, ex=settings.redis_ttl)
     
     @staticmethod
     async def store_sms_otp(db:aioredis.Redis, username:str, mobile:str, otp:str):
@@ -29,7 +29,7 @@ class OTPRepository():
         """
         # Store OTP with a key pattern: username:mobile:<mobile>
         key = f"{username}:mobile:{mobile}"
-        await db.set(key, otp, ex=settings.redit_ttl)
+        await db.set(key, otp, ex=settings.redis_ttl)
 
     @staticmethod
     async def find_user_key_value_by_otp(db: aioredis.Redis, username: str, otp: str,otp_type:str) -> str | None:
