@@ -6,7 +6,7 @@ networks:
 
 services:
   2fa_middleware:
-    build: ./fastapi
+    build: ./app
     container_name: 2fa_middleware
     networks:
       - backend
