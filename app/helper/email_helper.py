@@ -1,10 +1,12 @@
 import httpx
 from app.config.settings import settings
+import logging
 
 class EmailHelper:
-    @staticmethod
-    def generate_otp_email_template(recepient_name:str,otp:str):
-        return f"""<!DOCTYPE html>
+  logger=logging.getLogger(__name__)
+  @staticmethod
+  def generate_otp_email_template(recepient_name:str,otp:str):
+    return f"""<!DOCTYPE html>
         <html>
 <head>
   <meta charset="UTF-8">
@@ -61,7 +63,7 @@ class EmailHelper:
       {otp}
     </div>
     <div class="message">
-      <p>This code is valid for the next <strong>{settings.opt_life}minutes</strong>. Please do not share this code with anyone.</p>
+      <p>This code is valid for the next <strong>{settings.otp_life} minutes</strong>. Please do not share this code with anyone.</p>
       <p>Follow http://localhost:8080/docs documentaion to enter your OTP</p>
       <p>If you did not request this, please ignore this email.</p>
     </div>
@@ -73,18 +75,29 @@ class EmailHelper:
 </body>
 </html>
 """
-    @staticmethod
-    async def send_email_otp(email:str,recepient_name:str,otp:str):
-        headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {settings.resend_api_key}"
-        }
-        payload={
+  # @staticmethod
+  # def generate_otp_email_template(recepient_name,otp):s
+  #   return f"Hello <strong>{recepient_name}</strong> Please enter your OTP code : <strong>{otp}</strong> in {settings.otp_life} minutes"
+  @staticmethod
+  async def send_email_otp(email:str,recepient_name:str,otp:str):
+    html= EmailHelper.generate_otp_email_template(recepient_name,otp)
+    headers={
+             "Authorization": f"Bearer {settings.resend_api_key}"
+    }
+    payload={
                 "from": settings.resend_from_email,
                 "to": [email],
                 "subject": '2FA Middleware Email OTP',
-                "html": EmailHelper.generate_otp_email_template(recepient_name,otp)
-            }
-        async with httpx.AsyncClient() as client:
-            response=await client.post(url=settings.resend_api_url,data=payload,headers=headers)
-            response.raise_for_status()
+                "html":html
+    }
+    EmailHelper.logger.info(f"Resend payload:{payload}")
+    async with httpx.AsyncClient() as client:
+      response = await client.post(url=settings.resend_api_url, json=payload, headers=headers)
+      if response.status_code >= 400:
+        # print full body to understand the 4xx/5xx reason from Resend
+        EmailHelper.logger.error(f"Resend API error: {response.status_code}")
+        try:
+          EmailHelper.logger.error(f"response.json(): {response.json()}")
+        except Exception:
+          EmailHelper.logger.error(f"response.text(): {response.text}")
+      response.raise_for_status()

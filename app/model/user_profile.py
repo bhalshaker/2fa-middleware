@@ -1,6 +1,6 @@
+
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column,Integer,String,Boolean,Text,DateTime
-import datetime
+from sqlalchemy import Column,Integer,String,Boolean,Text,DateTime,func
 
 Base=declarative_base()
 
@@ -17,5 +17,5 @@ class UserProfile(Base):
     is_email_address_verified=Column(Boolean,nullable=True)
     totp_secret_encrypted = Column(Text, nullable=True)
     is_totp_verified=Column(Boolean,nullable=True)
-    created_at=Column(DateTime, default=datetime.timezone.utc)
-    updated_at=Column(DateTime,default=datetime.timezone.utc,onupdate=datetime.timezone.utc)
+    created_at=Column(DateTime, default=func.now())
+    updated_at=Column(DateTime, default=func.now(), onupdate=func.now())

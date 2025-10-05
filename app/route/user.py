@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends
+from fastapi import APIRouter,Depends,BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 import redis.asyncio as aioredis
 from app.dependacy.authenticate_user import AuthenticateUser
@@ -24,9 +24,9 @@ async def get_user_profile(authentication_results: TokenValidationResponse=Depen
     return await UserProfileController.get_user_profile(authentication_results,db)
 
 @user_router.patch('/user')
-async def update_user_profile(updated_user_info:UpdateUserInfo,authentication_results: TokenValidationResponse=Depends(AuthenticateUser.get_logged_in_user),
+async def update_user_profile(updated_user_info:UpdateUserInfo,background_tasks: BackgroundTasks,authentication_results: TokenValidationResponse=Depends(AuthenticateUser.get_logged_in_user),
                               db:AsyncSession=Depends(get_pg_db_connection),redis:aioredis.Redis=Depends(get_redis_db_client))->UpdateUserInfoResponse:
-    return await UserProfileController.update_user_info(authentication_results,updated_user_info,db,redis)
+    return await UserProfileController.update_user_info(authentication_results,updated_user_info,db,redis,background_tasks)
 
 @user_router.post('/user/verify-otp')
 async def verify_otp(received_otp:SendOTPSchema,authentication_results: TokenValidationResponse=Depends(AuthenticateUser.get_logged_in_user),
@@ -39,6 +39,6 @@ async def generate_totp(authentication_results: TokenValidationResponse=Depends(
     return await UserProfileController.generate_totp_seed(authentication_results,db,redis)
 
 @user_router.post('/user/verify-totp')
-async def verify_totp(received_totp:SendOTPSchema,authentication_results: TokenValidationResponse=Depends(AuthenticateUser.get_logged_in_user),
+async def verify_totp(received_totp:SendTOTP,authentication_results: TokenValidationResponse=Depends(AuthenticateUser.get_logged_in_user),
                               db:AsyncSession=Depends(get_pg_db_connection),redis:aioredis.Redis=Depends(get_redis_db_client))->TOTPVerificationResult:
-    return await UserProfileController.verify_totp_seed(authentication_results,received_totp.otp,received_totp.otp_type,db,redis)
+    return await UserProfileController.verify_totp_seed(authentication_results,received_totp.totp,received_totp.is_new_seed,db,redis)

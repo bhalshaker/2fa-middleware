@@ -4,13 +4,13 @@ WORKDIR /2fa-middleware
 
 COPY . .
 
-RUN pip install --no-cache-dir -r app/requirements.txt
-RUN pip install --no-cache-dir -r app/requirements-test.txt
-
 # Copy the wait script into the image
-COPY wait-for-postgres.sh /usr/local/bin/wait-for-postgres.sh
+COPY wait-for-postgres-keycloak.sh /usr/local/bin/wait-for-postgres-keycloak.sh
 
 # Make it executable
-RUN chmod +x /usr/local/bin/wait-for-postgres.sh
+RUN chmod +x /usr/local/bin/wait-for-postgres-keycloak.sh
+
+RUN pip install --no-cache-dir -r app/requirements.txt
+RUN pip install --no-cache-dir -r app/requirements-test.txt
 
 ENV PYTHONPATH=/app
