@@ -56,10 +56,10 @@ _(All requirements are covered in the provided Docker Compose file)_
 | GET         | `/metrics`            | Returns Prometheus metrics                       | Public                      |
 | POST        | `/user`               | Registers first-time Keycloak-authenticated user | Authenticated Keyclock user |
 | GET         | `/user`               | Retrieves current user details                   | Authenticated Keyclock user |
-| UPDATE      | `/user`               | Updates user mobile/email manually               | Authenticated Keyclock user |
+| PATCH       | `/user`               | Updates user mobile/email manually               | Authenticated Keyclock user |
 | POST        | `/user/verify-otp`    | Verifies received OTP                            | Authenticated Keyclock user |
 | POST        | `/user/generate-totp` | Request generation of new TOTP                   | Authenticated Keycloak user |
-| POST        | `/user/verift-totp`   | Verifies session access using TOTP               | Authenticated Keyclock user |
+| POST        | `/user/verify-totp`   | Verifies session access using TOTP               | Authenticated Keyclock user |
 
 ## 📦 Libraries Used
 
