@@ -46,22 +46,30 @@ class OTPRepository():
         identifier_value = None
         try:
             # Validate OTP type
-            if otp_type not in ["mobile","email"]:
+            if otp_type not in ["mobile", "email"]:
                 raise ValueError("Invalid OTP type")
+
             # Construct the key pattern to search
             pattern = f"{username}:{otp_type}:*"
+
             # Scan through keys matching the pattern
             keys = await db.keys(pattern)
+
             # Iterate through the keys to find the matching OTP
             for key in keys:
+                # keys() may return bytes depending on client; normalize to str
+                raw_key = key.decode() if isinstance(key, (bytes, bytearray)) else str(key)
                 value = await db.get(key)
-                if value == otp:
+                # value may be bytes as well
+                raw_value = value.decode() if isinstance(value, (bytes, bytearray)) else value
+                if raw_value == otp:
                     # Extract the identifier from the key: username:otp_type:<identifier>
-                    identifier_value = key.split(":", 2)[-1]
-                return identifier_value
-            return identifier_value
-        except Exception as exc:
-            return identifier_value
+                    identifier_value = raw_key.split(":", 2)[-1]
+                    return identifier_value
+
+            return None
+        except Exception:
+            return None
         
     @staticmethod
     async def confirm_and_delete_otp(db: aioredis.Redis, username:str, identifier:str, otp:str, otp_type:str)->bool:
