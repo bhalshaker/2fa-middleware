@@ -33,7 +33,14 @@ class TOTPRepository():
             str | None: The TOTP seed if found, else None.
         """
         key = f"{username}:totp"
-        return await db.get(key)
+        value = await db.get(key)
+        # Just in case the value in Byts then decode it
+        if isinstance(value, (bytes, bytearray)):
+            try:
+                return value.decode()
+            except Exception:
+                return None
+        return value
     
     @staticmethod
     async def delete_totp_seed(db:aioredis.Redis, username:str):

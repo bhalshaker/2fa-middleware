@@ -63,7 +63,41 @@ async def client(db_session):
     async def _placeholder_create_redis_db_pool():
         # Create a FakeRedis instance compatible with redis.asyncio API
         # decode_responses behaviour: fakeredis returns str when set with strings
-        redis_database.redis_pool = await fakeredis_async.create_redis_pool()
+        try:
+            # Preferred: fakeredis.aioredis.create_redis_pool() (if available)
+            if hasattr(fakeredis_async, "create_redis_pool"):
+                redis_database.redis_pool = await fakeredis_async.create_redis_pool()
+            # Some fakeredis versions expose a FakeRedis class
+            elif hasattr(fakeredis_async, "FakeRedis"):
+                # FakeRedis typically behaves like a client instance (no await)
+                redis_database.redis_pool = fakeredis_async.FakeRedis()
+            # Some variants expose a Redis/Fake client class directly
+            elif hasattr(fakeredis_async, "Redis"):
+                redis_database.redis_pool = fakeredis_async.Redis()
+            else:
+                # Try the top-level fakeredis package as a last resort
+                import fakeredis as _fr
+                redis_database.redis_pool = _fr.FakeRedis()
+        except Exception:
+            # Last-resort tiny in-memory fallback implementing minimal async API
+            class _SimpleFakeRedis:
+                def __init__(self):
+                    self._store = {}
+
+                async def get(self, key):
+                    return self._store.get(key)
+
+                async def set(self, key, value, ex=None):
+                    self._store[key] = value
+                    return True
+
+                async def delete(self, key):
+                    return self._store.pop(key, None) is not None
+
+                async def aclose(self):
+                    return None
+
+            redis_database.redis_pool = _SimpleFakeRedis()
 
     async def _placeholder_close_redis_db_pool():
         pool = getattr(redis_database, "redis_pool", None)

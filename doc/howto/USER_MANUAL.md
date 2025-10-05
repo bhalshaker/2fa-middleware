@@ -1,68 +1,108 @@
-## Prequesits
+# 2FA Middleware Setup Guide
 
-- Create a Twilio account and have a number
-- Create Resend account
+This guide walks you through setting up and using the 2FA Middleware project using Podman or Docker.
 
-## Build and Start Environment Using Podman/Docker
+---
 
-- Clone the project
+## 🔑 Prerequisites
+
+Before you begin, make sure you have:
+
+- A [Twilio](https://www.twilio.com/) account with an active phone number.
+- A [Resend](https://resend.com/) account.
+
+---
+
+## ⚙️ Build and Start the Environment
+
+### 1. Clone the Repository
 
 ```sh
 git clone https://github.com/bhalshaker/2fa-middleware.git
-```
-
-- Go to the project folder
-
-```sh
 cd 2fa-middleware
-
 ```
 
-- Create .env file refere to example.env
+### 2. Create Environment File
 
-- Build enviroment
+Create a `.env` file by referring to the provided `example.env`.
+
+### 3. Build the Environment
 
 ```sh
 podman compose build
 ```
 
-- Start enviroment
+### 4. Start the Environment
 
 ```sh
-podman compose up
+podman compose up -d
 ```
 
-## Start using the application
+---
 
-- Create a token using curl from keycloak you may refer to Sample Users table
+## 🚀 Using the Application
 
-```sh
-curl --location 'http://localhost:8080/realms/2faproject/protocol/openid-connect/token' \
---header 'Content-Type: application/x-www-form-urlencoded' \
---data-urlencode 'client_id=fastapi-client' \
---data-urlencode 'grant_type=password' \
---data-urlencode 'username=ebrahim.salem' \
---data-urlencode 'password=Ebrahim123' \
---data-urlencode 'client_secret=ZzX7oJoxnyXyuUGcAgWbFby8ma9dSkL2'
-```
+### 1. Access Swagger UI
 
-- Grap the token and Open FastAPI Swagger UI
+Open your browser and go to:
 
 ```
 http://localhost:8000/docs
 ```
 
-- Place the token in Authorize
+Log in using predefined usernames and passwords configured in Keycloak. Refer to the **Sample Users** table for credentials.
 
-- Go to POST method of users to create a record for the user in the database. Behind the sceen Swagger will create a similar request if you do not want to use swagger replace the token with the one generated to you.
+### 2. Create a User Record
 
-```sh
-curl -X 'POST' \
-  'http://localhost:8000/user' \
-  -H 'accept: application/json' \
-  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJTcWdsZkFfQjREV0M2VlJ0YUJ2X0c1LVEwc19YTERwQzlhQjVnS2FpbjZzIn0.eyJleHAiOjE3NTk2Nzk5NjIsImlhdCI6MTc1OTY3ODE2MiwianRpIjoib25ydHJvOjQ1MTlmMWRhLTcwZmItNWVkZC1mYjYyLTEzZTRhMjlmM2I5MSIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9yZWFsbXMvMmZhcHJvamVjdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJjZmRjZGQ3MS05OTcwLTRlMGQtYTY1MC1jZWNiMzQ3N2U5OTEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmYXN0YXBpLWNsaWVudCIsInNpZCI6ImQ0NTZmYWM2LTZjZTMtZGMzNS05YzY5LTExOTUyNjUwNWExYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiLyoiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iLCJkZWZhdWx0LXJvbGVzLTJmYXByb2plY3QiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6ImVtYWlsIHByb2ZpbGUiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkVicmFoaW0gU2FsZW0iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJlYnJhaGltLnNhbGVtIiwiZ2l2ZW5fbmFtZSI6IkVicmFoaW0iLCJmYW1pbHlfbmFtZSI6IlNhbGVtIiwiZW1haWwiOiJlYnJhaGltLnNhbGVtQGV4YW1wbGUuY29tIn0.Cxh8S97I6HpPLbUqTBorY0_4kFpYV1OliysW9En02ZqtPVLXaCXFWStA10-mCSsSv-OSNlxXj8qofdje6_2XacRpgsn6P7TJox8tlmpr894Syzck7UKv4HHi_AqCl_poj2ixFtuz4PHqLFiba9ympOWUPWuGMIT_f9YoCBjSfOEmyOsWM3p4frpv7ZWimNjhB7BOWPTtfXg9IrHo7cn4zshpIPf4Be5mg7Wqo5K6CvKP5EZOPjWdoZ6zsR69MWUeYcLGEB2y2I9kiDd_rTq8U_n1Sw0y2ta62_j0ZbDpsC7jX-Lq1lfUDd3u_75FK9OscBHLC_qRoaFJ7bxHidg8MA' \
-  -d ''
+Use `POST /user` in Swagger UI to insert a new user into the database. Swagger will generate the request automatically. If using an external client, replace the token with one generated for your session.
+
+### 3. Verify User Record
+
+Run `GET /user` to confirm the user was successfully created.
+
+### 4. Update Mobile Number and/or Email
+
+Use `PATCH /user` to update the user's mobile number and/or email. Enter a valid Bahraini mobile number and/or email address.
+
+### 5. Confirm Mobile/Email via OTP
+
+You will receive an OTP via SMS or email. Use `POST /user/verify-otp` to confirm the change. Set `otp_type` to either `email` or `mobile`.
+
+#### 📧 Email OTP Example
+
+![Email Example](../images/Screenshot_20251006_023757_Gmail.jpg)
+
+#### 📱 SMS OTP Example
+
+![SMS Example](../images/Screenshot_20251006_022120_Messages.jpg)
+
+### 6. Generate TOTP Seed
+
+Use `POST /user/generate-totp` to generate a TOTP seed. The service will return a QR code in base64 format.
+
+### 7. Scan or Submit QR Code
+
+Scan the QR code using an authenticator app (e.g., Google Authenticator, Microsoft Authenticator), or paste the base64 value into:
+
 ```
+http://localhost:8000/static/TEST_QR.HTML
+```
+
+### 8. Verify TOTP
+
+Use `POST /user/verify-totp` within 10 minutes. Set `is_new_seed` to `true` and enter the TOTP from your authenticator app. Upon success, the seed will be registered in the user's profile.
+
+### 9. Test TOTP Verification
+
+You can re-run `POST /user/verify-totp` with `is_new_seed` set to `false` to test valid and invalid TOTPs.
+
+---
+
+## 🧪 Notes
+
+- Ensure your `.env` file is correctly configured before building.
+- The application supports both email and SMS OTP flows.
+- TOTP verification must be completed within 10 minutes of generation.
 
 ### Sample Users
 
