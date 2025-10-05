@@ -17,7 +17,7 @@
 - **FastAPI** acts as the central orchestrator, validating tokens and routing requests.
 - **PostgreSQL** stores persistent data such as user profiles and transactions.
 - **Redis** manages session data for fast access and scalability.
-- **SMTP** is used by FastAPI to send email-based OTPs.
+- **EMAIL API** is used by FastAPI to send email-based OTPs.
 - **SMS API** is triggered by FastAPI to send OTPs via SMS.
 
 ![2FA Middleware Architecture](doc/images/2FA-MIDDLEWARE_ARCH.svg)
@@ -86,6 +86,14 @@ _(All requirements are covered in the provided Docker Compose file)_
 | **Pytest**    | Framework for writing and running unit tests                      |
 | **httpx**     | Used for testing HTTP endpoints with async support                |
 | **fakeredis** | Simulates Redis for testing without requiring a live Redis server |
+
+### How to use the appliation
+
+[User Manual](doc/howto/USER_MANUAL.md)
+
+### Snapshot of Github flow results
+
+[!Tests](doc/images/Screenshot_2025-10-06_02-48-19.png)
 
 ## 📢 Attributes
 
