@@ -9,3 +9,4 @@ redis==6.4.0
 qrcode==8.2
 psutil==7.1.0
 prometheus-client==0.23.1
+pillow==11.3.0

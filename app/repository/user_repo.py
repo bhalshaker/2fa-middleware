@@ -1,9 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.model.user_profile import UserProfile
 from sqlalchemy.future import select
+import logging
 
 class UserRepository():
     """Repository for user profile related database operations."""
+
+    logger=logging.getLogger(__name__)
 
     @staticmethod
     async def get_user_by_username(username:str,db: AsyncSession)->UserProfile | None:
@@ -17,6 +20,7 @@ class UserRepository():
         """
         result = await db.execute(select(UserProfile).where(UserProfile.username == username))
         return result.scalars().first()
+
     @staticmethod
     async def create_new_user(user_profile:UserProfile,db: AsyncSession)->UserProfile:
         """

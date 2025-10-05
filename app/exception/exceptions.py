@@ -37,6 +37,19 @@ class NoMatchingUserError(Exception):
             return f"Error Code {self.code}: {self.message}"
         return self.message
 
+class MatchingUserError(Exception):
+    """Matching User Error class."""
+
+    def __init__(self, message="User already exists.", code=None):
+        self.message = message
+        self.code = code
+        super().__init__(self.message) # Call the base Exception constructor
+
+    def __str__(self):
+        if self.code:
+            return f"Error Code {self.code}: {self.message}"
+        return self.message
+
 class NoMatchingOTPError(Exception):
     """No Matching OTP Error class."""
 
@@ -88,4 +101,16 @@ class TechnicalError(Exception):
         if self.code:
             return f"Error Code {self.code}: {self.message}"
         return self.message
- 
+    
+class ExistingOTPError(Exception):
+    """Existing Error class."""
+
+    def __init__(self, message="There is an existing OTP still needs to be verified", code=None):
+        self.message = message
+        self.code = code
+        super().__init__(self.message) # Call the base Exception constructor
+
+    def __str__(self):
+        if self.code:
+            return f"Error Code {self.code}: {self.message}"
+        return self.message

@@ -1,2 +1,4 @@
 pytest
 fakeredis
+pytest-asyncio
+aiosqlite

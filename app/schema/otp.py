@@ -8,8 +8,8 @@ class SendOTPSchema(BaseModel):
     @field_validator('otp_type')
     def validate_otp_type(cls, v):
         v = v.lower()
-        if v not in ['sms', 'email']:
-            raise ValueError('otp_type must be either "sms" or "email"')
+        if v not in ['mobile', 'email']:
+            raise ValueError('otp_type must be either "mobile" or "email"')
         return v
     
 class OTPVerificationResponse(BaseModel):

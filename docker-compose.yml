@@ -5,20 +5,6 @@ networks:
     driver: bridge
 
 services:
-  2fa_middleware:
-    build: .
-    container_name: 2fa_middleware
-    networks:
-      - backend
-    ports:
-      - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_started
-      redis:
-        condition: service_started
-    env_file:
-      - .env
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.4
@@ -84,6 +70,22 @@ services:
     depends_on:
       prometheus:
         condition: service_started
+  2fa_middleware:
+    build: .
+    container_name: 2fa_middleware
+    networks:
+      - backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+    env_file:
+      - .env
+    entrypoint: ["wait-for-postgres-keycloak.sh"]
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 volumes:
   pgdata:

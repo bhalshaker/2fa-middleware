@@ -15,7 +15,7 @@ class OTPRepository():
         """
         # Store OTP with a key pattern: username:email:<email>
         key = f"{username}:email:{email}"
-        await db.set(key, otp, ex=settings.redit_ttl)
+        await db.set(key, otp, ex=settings.redis_ttl)
     
     @staticmethod
     async def store_sms_otp(db:aioredis.Redis, username:str, mobile:str, otp:str):
@@ -29,7 +29,7 @@ class OTPRepository():
         """
         # Store OTP with a key pattern: username:mobile:<mobile>
         key = f"{username}:mobile:{mobile}"
-        await db.set(key, otp, ex=settings.redit_ttl)
+        await db.set(key, otp, ex=settings.redis_ttl)
 
     @staticmethod
     async def find_user_key_value_by_otp(db: aioredis.Redis, username: str, otp: str,otp_type:str) -> str | None:
@@ -91,5 +91,30 @@ class OTPRepository():
                 await db.delete(pattern)
                 return True  # OTP confirmed and deleted
             return False  # OTP mismatch
+        except Exception as exc:
+            return False
+    @staticmethod
+    async def user_has_existing_otp_by_otp_type(db: aioredis.Redis, username:str,  otp_type:str)->bool:
+        """
+        Check for users existing OTP by otp type.
+        Args:
+            db (aioredis.Redis): redis client instance
+            username (str): username of the user want to confirm otp
+            otp_type (str): type of otp to confirm ("email" or "mobile")
+        Returns:
+            bool: True if there are otps for the user.
+        """
+        try:
+            # Validate OTP type
+            if otp_type not in ["mobile","email"]:
+                raise ValueError("Invalid OTP type")
+            # Construct the key pattern to search
+            pattern = f"{username}:{otp_type}:*"
+            # Retrieve the stored OTP
+            stored_otp = await db.get(pattern)
+            if not stored_otp:
+                return False  # No OTP found
+            else:
+                return True 
         except Exception as exc:
             return False

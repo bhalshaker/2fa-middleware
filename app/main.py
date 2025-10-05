@@ -6,10 +6,10 @@ from app.dependacy.redis_database import close_redis_db_pool,create_redis_db_poo
 from app.helper.metrics import MetricsMiddleware, metrics_app
 from app.route.user import user_router
 from fastapi.staticfiles import StaticFiles
-
 import logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger=logging.getLogger(__name__)
 
-logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:

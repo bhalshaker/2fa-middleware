@@ -4,9 +4,13 @@ WORKDIR /2fa-middleware
 
 COPY . .
 
+# Copy the wait script into the image
+COPY wait-for-postgres-keycloak.sh /usr/local/bin/wait-for-postgres-keycloak.sh
+
+# Make it executable
+RUN chmod +x /usr/local/bin/wait-for-postgres-keycloak.sh
+
 RUN pip install --no-cache-dir -r app/requirements.txt
 RUN pip install --no-cache-dir -r app/requirements-test.txt
 
 ENV PYTHONPATH=/app
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
