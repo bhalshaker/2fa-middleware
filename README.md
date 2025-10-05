@@ -93,7 +93,7 @@ _(All requirements are covered in the provided Docker Compose file)_
 
 ### Snapshot of Github flow results
 
-[!Tests](doc/images/Screenshot_2025-10-06_02-48-19.png)
+![Tests Screenshots](doc/images/Screenshot_2025-10-06_02-48-19.png)
 
 ## 📢 Attributes
 
