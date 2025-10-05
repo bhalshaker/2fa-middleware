@@ -25,14 +25,14 @@ class KeycloakHelper:
             token_response (TokenGenerationResponse): Returns the response of token generation request.
         """
         # Generate Token generation URL
-        token_url = f"{settings.keycloack_url}/realms/{settings.keycloack_realm}/protocol/openid-connect/token"
+        token_url = f"{settings.keycloak_url}/realms/{settings.keycloak_realm}/protocol/openid-connect/token"
         # Generate request body payload
         payload = {
                  "grant_type": "password",
                  "username": username,
                  "password": password,
-                 "client_id": settings.keycloack_client_id,
-                 "client_secret": settings.keycloack_client_secret,
+                 "client_id": settings.keycloak_client_id,
+                 "client_secret": settings.keycloak_client_secret,
             }
         # Define request header
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -60,16 +60,16 @@ class KeycloakHelper:
     @staticmethod
     async def get_admin_token()->TokenGenerationResponse:
         """Fetches an admin token from Keycloak using admin user credentials."""
-        return await KeycloakHelper.generat_token(settings.keycloack_admin_username,settings.keycloack_admin_username)
+        return await KeycloakHelper.generat_token(settings.keycloak_admin_username,settings.keycloak_admin_username)
     
     @staticmethod
     async def validate_token(token: str)->TokenValidationResponse:
         # Generate Token validation URL
-        token_url = f"{settings.keycloack_url}/realms/{settings.keycloack_realm}/protocol/openid-connect/token/introspect"
+        token_url = f"{settings.keycloak_url}/realms/{settings.keycloak_realm}/protocol/openid-connect/token/introspect"
         # Generate request body payload
         payload = {
-                 "client_id": settings.keycloack_client_id,
-                 "client_secret": settings.keycloack_client_secret,
+                 "client_id": settings.keycloak_client_id,
+                 "client_secret": settings.keycloak_client_secret,
                  "token":token,
             }
         # Define request header
@@ -112,7 +112,7 @@ class KeycloakHelper:
             if not(admin_token.successful):
                 raise TokenGenerationError()
             # Generate Token validation URL
-            search_user_url = f"{settings.keycloack_url}/admin/realms/{settings.keycloack_realm}/users?username={username}"
+            search_user_url = f"{settings.keycloak_url}/admin/realms/{settings.keycloak_realm}/users?username={username}"
             # Define request header
             headers = {"Authorization": f"Bearer {admin_token.token}"}
             async with httpx.AsyncClient() as client:
@@ -169,7 +169,7 @@ class KeycloakHelper:
             if not(admin_token.successful):
                 raise TokenGenerationError
             # Generate user update url
-            generate_user_update_url = f"{settings.keycloack_url}/admin/realms/{settings.keycloack_realm}/users/{retrieved_user_info.id}"
+            generate_user_update_url = f"{settings.keycloak_url}/admin/realms/{settings.keycloak_realm}/users/{retrieved_user_info.id}"
             headers={'Content-Type': 'application/json',
                      "Authorization": f"Bearer {admin_token.token}"}
             async with httpx.AsyncClient() as client:

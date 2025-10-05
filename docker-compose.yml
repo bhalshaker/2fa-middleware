@@ -14,12 +14,16 @@ services:
       - "8000:8000"
     depends_on:
       - postgres
-    environment:
-      - DATABASE_URL=postgresql://fastapi_user:fastapi_pass@postgres:5432/fastapi_db
+      - redis
+    env_file:
+      - .env
 
   keycloak:
-    image: quay.io/keycloak/keycloak:24.0.1
+    image: quay.io/keycloak/keycloak:26.4
     container_name: keycloak_auth
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     command: start-dev --import-realm
     networks:
       - backend
@@ -27,28 +31,30 @@ services:
       - "8080:8080"
     volumes:
       - ./keycloak-config:/opt/keycloak/data/import
-    environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_DB: postgres
-      KC_DB_URL_HOST: postgres
-      KC_DB_URL_DATABASE: keycloak_db
-      KC_DB_USERNAME: keycloak_user
-      KC_DB_PASSWORD: keycloak_pass
-    depends_on:
-      - postgres
+      - keycloak_data:/opt/keycloak/data
 
   postgres:
-    image: postgres:15
-    container_name: shared_postgres
+    image: postgres:18-alpine
+    container_name: user_profile_db
     networks:
       - backend
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: rootpass
+      POSTGRES_USER: pgadmin
+      POSTGRES_PASSWORD: pgadmin
+      POSTGRES_DB: fastapi_db
+    ports:
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./postgres-init:/docker-entrypoint-initdb.d
+  redis:
+    image: redis:latest
+    container_name: redis-cache
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
   prometheus:
     image: prom/prometheus
@@ -74,4 +80,6 @@ services:
 
 volumes:
   pgdata:
+  keycloak_data:
   grafana_data:
+  redis_data:
