@@ -4,6 +4,9 @@ from typing import AsyncGenerator
 from app.dependacy.pg_database import create_pg_db_pool,close_pg_db_pool
 from app.dependacy.redis_database import close_redis_db_pool,create_redis_db_pool
 from app.helper.metrics import MetricsMiddleware, metrics_app
+from app.route.user import user_router
+from fastapi.staticfiles import StaticFiles
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -37,3 +40,5 @@ app = FastAPI(
 
 app.add_middleware(MetricsMiddleware)
 app.mount("/metrics", metrics_app)
+app.include_router(user_router, tags=["User"])
+app.mount("/static",StaticFiles(directory="app/static"),name="static")
