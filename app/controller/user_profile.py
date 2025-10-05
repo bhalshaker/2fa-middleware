@@ -61,6 +61,9 @@ class UserProfileController:
         except Exception as exc:
             # Return user profile info with null values
             return UserProfileInfoResponse(False,str(exc))
+    @staticmethod
+    async def get_user_profile(received_token: TokenValidationResponse,db:AsyncSession)->UserProfile|None:
+        return UserRepository.get_user_by_username(received_token.username,db)
         
     # Generate TOTP
     @staticmethod
