@@ -23,3 +23,7 @@ class TOTPVerificationResult(BaseModel):
     """Class to hold TOTP verification result."""
     successful: bool
     message: Optional[str] = None
+
+class SendTOTP(BaseModel):
+    totp:str
+    is_new_seed:Optional[bool]=False
