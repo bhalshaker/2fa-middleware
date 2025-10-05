@@ -1,5 +1,6 @@
 # 2FA-Middleware
 
+![CI for 2FA Middleware](https://github.com/bhalshaker/2fa-middleware/actions/workflows/ci.yml/badge.svg)
 ![Project Logo](doc/images/2fa-logo.png)
 
 **2FA-Middleware** is a secure authentication middleware for FastAPI applications, integrating **Keycloak** for user authentication and **two-factor authentication (2FA)** via email, Time-based One-Time Password (TOTP), and SMS. It offers a robust and flexible authentication solution for frontend applications.
