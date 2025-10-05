@@ -3,33 +3,19 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.pool import StaticPool
 from httpx import ASGITransport, AsyncClient
+import fakeredis.aioredis as fakeredis_async
+import qrcode
+import pyotp
+import prometheus_client
+
 from app.main import app
 import app.dependacy.pg_database as pg_database
 import app.dependacy.redis_database as redis_database
-from sqlalchemy.ext.asyncio import AsyncSession as _AsyncSession  # for typing below
+from sqlalchemy.ext.asyncio import AsyncSession as _AsyncSession 
 from app.dependacy.pg_database import get_pg_db_connection
 from app.dependacy.redis_database import get_redis_db_client
 from app.model.user_profile import Base
 
-# Simple in-memory "fake" redis client for tests (implements used async methods)
-class RedisFake:
-    def __init__(self):
-        self._store = {}
-
-    async def get(self, key):
-        return self._store.get(key)
-
-    async def set(self, key, value, ex=None):
-        # store value as string for parity with redis.decode_responses=True
-        self._store[key] = value
-        return True
-
-    async def delete(self, key):
-        return self._store.pop(key, None) is not None
-
-    async def aclose(self):
-        # no-op
-        return None
 
 @pytest_asyncio.fixture(scope="function")
 async def db_engine():
@@ -63,8 +49,6 @@ async def db_session(db_engine):
 async def client(db_session):
     """Get a TestClient with the database and redis dependency overrides."""
 
-    
-
     # Patch create/close pool functions so FastAPI startup (lifespan) does not attempt prod connections
     async def _placeholder_create_pg_db_pool():
         # set the module globals to use our in-memory engine/session maker
@@ -77,13 +61,22 @@ async def client(db_session):
         pg_database._async_session_maker = None
 
     async def _placeholder_create_redis_db_pool():
-        redis_database.redis_pool = RedisFake()
+        # Create a FakeRedis instance compatible with redis.asyncio API
+        # decode_responses behaviour: fakeredis returns str when set with strings
+        redis_database.redis_pool = await fakeredis_async.create_redis_pool()
 
     async def _placeholder_close_redis_db_pool():
-        if getattr(redis_database, "redis_pool", None):
-            # call aclose if present
+        pool = getattr(redis_database, "redis_pool", None)
+        if pool:
+            # fakeredis pool exposes close()/wait_closed() or aclose()
             try:
-                await redis_database.redis_pool.aclose()
+                # prefer aclose if provided
+                if hasattr(pool, "aclose"):
+                    await pool.aclose()
+                elif hasattr(pool, "close"):
+                    pool.close()
+                    if hasattr(pool, "wait_closed"):
+                        await pool.wait_closed()
             except Exception:
                 pass
             redis_database.redis_pool = None

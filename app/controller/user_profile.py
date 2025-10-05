@@ -56,11 +56,11 @@ class UserProfileController:
                                     )
             UserProfileController.logger.info(f"# Creating the following record {user_profile}")
             refreshed_user_profile=await UserRepository.create_new_user(user_profile,db)
-            # Return refreshed data (construct Pydantic models with keyword args)
+            
             return UserProfileInfoResponse(
                 successful=True,
                 message="",
-                data=UserProfileInfo(
+                user_profile_info=UserProfileInfo(
                     username=refreshed_user_profile.username,
                     first_name=refreshed_user_profile.first_name,
                     last_name=refreshed_user_profile.last_name,
