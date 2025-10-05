@@ -12,7 +12,8 @@ from app.helper.otp_helper import OTPHelper
 from app.helper.email_helper import EmailHelper
 from app.helper.sms_helper import SMSHelper
 from app.exception.exceptions import (NoMatchingUserError,NoMatchingOTPError,NoMatchingSeedError,
-                                      SeedWaitingForConfirmationError,TechnicalError,MatchingUserError)
+                                      SeedWaitingForConfirmationError,TechnicalError,MatchingUserError,
+                                      ExistingOTPError)
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import BackgroundTasks,Depends
 import redis.asyncio as aioredis
@@ -180,6 +181,9 @@ class UserProfileController:
             # Check for email changes and send OTP if changed
             if updated_user_info.email and (updated_user_info.email!=user_profile.email_address):
                 UserProfileController.logger.info(f"# newly requested email update for User {authentication_results.username} is allowed")
+                has_existing_otp=await OTPRepository.user_has_existing_otp_by_otp_type(redis,authentication_results.username,'email')
+                if has_existing_otp:
+                    raise ExistingOTPError()
                 # Create OTP
                 generated_otp=OTPHelper.generate_otp()
                 # Store OTP in Redis
@@ -199,6 +203,9 @@ class UserProfileController:
             # Check for mobile changes and send OTP if changed
             if updated_user_info.mobile and (updated_user_info.mobile!=user_profile.mobile_number):
                 UserProfileController.logger.info(f"# newly requested mobile update for User {authentication_results.username} is allowed")
+                has_existing_otp=await OTPRepository.user_has_existing_otp_by_otp_type(redis,authentication_results.username,'mobile')
+                if has_existing_otp:
+                    raise ExistingOTPError()
                 # Create OTP
                 generated_otp=OTPHelper.generate_otp()
                 # Store OTP in Redis
@@ -249,7 +256,7 @@ class UserProfileController:
             # Delete OTP
             await OTPRepository.confirm_and_delete_otp(redis,authentication_results.username,matching_otp_identifier,received_otp.otp,received_otp.otp_type)
             # Update user data based on type
-            if received_otp.otp_type=="sms":
+            if received_otp.otp_type=="mobile":
                 await UserRepository.update_user_mobile(authentication_results.username,matching_otp_identifier,db)
             elif received_otp.otp_type=="email":
                 await UserRepository.update_user_email(authentication_results.username,matching_otp_identifier,db)
