@@ -16,25 +16,31 @@ from app.exception.exceptions import (NoMatchingUserError,NoMatchingOTPError,NoM
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import BackgroundTasks,Depends
 import redis.asyncio as aioredis
+import logging
 
 class UserProfileController:
 
+    logger=logging.getLogger(__name__)
+
     @staticmethod
-    async def create_user_profile(received_token: TokenValidationResponse,db:AsyncSession) -> UserProfileInfoResponse:
+    async def create_user_profile(authentication_results: TokenValidationResponse,db:AsyncSession) -> UserProfileInfoResponse:
         """Create a new user profile in the database if one does not already exist.
         Args:
-            received_token (TokenValidationResponse): The validated token containing user information.
+            authentication_results (TokenValidationResponse): The validated token containing user information.
             db (AsyncSession): The database session for performing operations.
         Returns:
             UserProfileInfoResponse: The created user profile information.
         """
         try:
             # Make sure there is no existing record for this user in the database
-            user_profile=await UserRepository.get_user_by_username(received_token.username)
+            UserProfileController.logger.info(f"# Looking for a matching record for user {authentication_results.username}")
+            user_profile=await UserRepository.get_user_by_username(authentication_results.username,db)
             if user_profile:
                 raise NoMatchingUserError # Return user creation failed because user already exists
+            UserProfileController.logger.info(f"# Good news no record for :{authentication_results.username}")
             # Get user attributes from keycloak
-            user_attributes=await KeycloakHelper.return_matching_user_info(received_token)
+            user_attributes=await KeycloakHelper.return_matching_user_info(authentication_results.username)
+            UserProfileController.logger.info(f"# {authentication_results.username} Attributes were retrieved from keycloak")
             if user_attributes.id==None:
                 raise NoMatchingUserError()
             # Create a new profile record
@@ -47,20 +53,26 @@ class UserProfileController:
                                         email_address=user_attributes.email,
                                         is_email_address_verified=user_attributes.email_verified
                                     )
+            UserProfileController.logger.info(f"# Creating the following record {user_profile}")
             refreshed_user_profile=await UserRepository.create_new_user(user_profile,db)
-            # Return refreshed data
-            return UserProfileInfoResponse(True,"",UserProfileInfo(
-                                    username=refreshed_user_profile.username,
-                                    first_name=refreshed_user_profile.first_name,
-                                    last_name=refreshed_user_profile.last_name,
-                                    mobile=refreshed_user_profile.mobile_number,
-                                    mobile_verified=refreshed_user_profile.is_mobile_number_verified,
-                                    email=refreshed_user_profile.email_address,
-                                    email_verified=refreshed_user_profile.is_email_address_verified
-                                    ))
+            # Return refreshed data (construct Pydantic models with keyword args)
+            return UserProfileInfoResponse(
+                successful=True,
+                message="",
+                data=UserProfileInfo(
+                    username=refreshed_user_profile.username,
+                    first_name=refreshed_user_profile.first_name,
+                    last_name=refreshed_user_profile.last_name,
+                    mobile=refreshed_user_profile.mobile_number,
+                    mobile_verified=refreshed_user_profile.is_mobile_number_verified,
+                    email=refreshed_user_profile.email_address,
+                    email_verified=refreshed_user_profile.is_email_address_verified,
+                ),
+            )
         except Exception as exc:
-            # Return user profile info with null values
-            return UserProfileInfoResponse(False,str(exc))
+            UserProfileController.logger.error(str(exc))
+            # Return user profile info with null values using keyword args
+            return UserProfileInfoResponse(successful=False, message=str(exc))
     @staticmethod
     async def get_user_profile(received_token: TokenValidationResponse,db:AsyncSession)->UserProfile|None:
         return UserRepository.get_user_by_username(received_token.username,db)

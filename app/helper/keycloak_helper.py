@@ -1,10 +1,13 @@
 import httpx
+import logging
 from app.config.settings import settings
 from app.schema.token import TokenGenerationResponse,TokenValidationResponse
 from app.schema.user import KeycloakUserInfo,UpdateUserInfo,UpdateUserResults
 from app.exception.exceptions import TokenValidationError,TokenGenerationError,NoMatchingUserError
 
 class KeycloakHelper:
+
+    logger = logging.getLogger(__name__)
 
     @staticmethod
     def get_customized_attribute_value(attributes: dict, key: str):
@@ -45,53 +48,61 @@ class KeycloakHelper:
                 response.raise_for_status()
                 # Load response into token_data
                 token_data = response.json()
-                # Return Token
+                # Return Token (map to TokenGenerationResponse dataclass fields)
                 return TokenGenerationResponse(
-                    success=True,
-                    access_token=token_data.get("access_token"),
+                    successful=True,
+                    token=token_data.get("access_token"),
                     token_type=token_data.get("token_type"),
-                    expires_in=token_data.get("expires_in", 0),
+                    token_expires_in=token_data.get("expires_in", 0),
                 )
             except Exception as exc:
-            # Catch all possible of errors such as network failure and invalid cerdintials
-                return TokenGenerationResponse(success=False, access_token=None, token_type=None, expires_in=0)
+                # Catch all possible errors such as network failure and invalid credentials
+                KeycloakHelper.logger.exception("Error generating token for user %s", username)
+                return TokenGenerationResponse(successful=False, token=None, token_type=None, token_expires_in=0)
 
 
     @staticmethod
     async def get_admin_token()->TokenGenerationResponse:
         """Fetches an admin token from Keycloak using admin user credentials."""
-        return await KeycloakHelper.generat_token(settings.keycloak_admin_username,settings.keycloak_admin_username)
+        # use admin password from settings
+        return await KeycloakHelper.generat_token(settings.keycloak_admin_username, settings.keycloak_admin_password)
     
     @staticmethod
     async def validate_token(token: str)->TokenValidationResponse:
         # Generate Token validation URL
         token_url = f"{settings.keycloak_url}/realms/{settings.keycloak_realm}/protocol/openid-connect/token/introspect"
-        # Generate request body payload
-        payload = {
-                 "client_id": settings.keycloak_client_id,
-                 "client_secret": settings.keycloak_client_secret,
-                 "token":token,
-            }
         # Define request header
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        # Generate request body payload
+        payload = {
+        "client_id": settings.keycloak_client_id,
+        "client_secret": settings.keycloak_client_secret,
+        "token": token
+        }
+        KeycloakHelper.logger.info(f"# Token Validation Payload:{payload}")
         async with httpx.AsyncClient() as client:
             try:
                 # Call Keyclock RestAPI to validate the token
                 response = await client.post(token_url, data=payload, headers=headers)
+                KeycloakHelper.logger.info("introspect status=%s", response.status_code)
+                KeycloakHelper.logger.info("introspect body=%s", response.text)  # safe for debugging; avoid tokens in prod logs
                 # If request failed raise an error
                 response.raise_for_status()
-                # Load response into token_data
+                # Load response into validation_data (introspection response)
                 validation_data = response.json()
-                if validation_data.get("active")==False:
+                # If token is not active, raise a validation error
+                KeycloakHelper.logger.info(validation_data)
+                if not validation_data.get("active", False):
                     raise TokenValidationError()
-                # Return username
+                # Return username mapped to TokenValidationResponse dataclass
                 return TokenValidationResponse(
-                    success=True,
+                    successful=True,
                     username=validation_data.get("preferred_username")
                 )
             except Exception as exc:
-            # Catch all possible of errors such as network failure and invalid token
-                return TokenValidationResponse(success=False, username=None)
+                # Catch all possible errors such as network failure and invalid token
+                KeycloakHelper.logger.exception("Error validating token")
+                return TokenValidationResponse(successful=False, username=None)
     
     # Get a Matching username
     async def return_matching_user_info(username:str)->KeycloakUserInfo:
@@ -141,7 +152,8 @@ class KeycloakHelper:
                                     )
             
         except Exception as exc:
-            # Return Empty KeycloakUserInfo in case of a failure or non matching user.
+            # Log and return Empty KeycloakUserInfo in case of a failure or non matching user.
+            KeycloakHelper.logger.exception("Error retrieving matching user info for username=%s", username)
             return KeycloakUserInfo()
 
     async def update_user_attributes(userinfo:UpdateUserInfo)->UpdateUserResults:
@@ -177,4 +189,5 @@ class KeycloakHelper:
                 update_user_info_response.raise_for_status()
                 return UpdateUserResults(True)
         except Exception as exc:
+            KeycloakHelper.logger.exception("Error updating user attributes for username=%s", getattr(userinfo, "username", None))
             return UpdateUserResults(False)

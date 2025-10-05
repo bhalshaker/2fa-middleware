@@ -7,6 +7,10 @@ COPY . .
 RUN pip install --no-cache-dir -r app/requirements.txt
 RUN pip install --no-cache-dir -r app/requirements-test.txt
 
-ENV PYTHONPATH=/app
+# Copy the wait script into the image
+COPY wait-for-postgres.sh /usr/local/bin/wait-for-postgres.sh
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Make it executable
+RUN chmod +x /usr/local/bin/wait-for-postgres.sh
+
+ENV PYTHONPATH=/app
