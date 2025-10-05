@@ -1,0 +1,23 @@
+# Ignore Python cache
+__pycache__/
+*.pyc
+app/__pycache__/
+app/*.pyc
+
+# Ignore local environment files
+.env
+*.env
+
+# Ignore test files and data
+tests/
+*.log
+*.sqlite3
+
+# Ignore version control
+.git/
+.gitignore
+
+# Ignore Docker config itself
+.dockerignore
+Dockerfile
+docker-compose.yml

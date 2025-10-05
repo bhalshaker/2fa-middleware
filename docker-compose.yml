@@ -6,15 +6,17 @@ networks:
 
 services:
   2fa_middleware:
-    build: ./app
+    build: .
     container_name: 2fa_middleware
     networks:
       - backend
     ports:
       - "8000:8000"
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
     env_file:
       - .env
 
@@ -22,16 +24,19 @@ services:
     image: quay.io/keycloak/keycloak:26.4
     container_name: keycloak_auth
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-    command: start-dev --import-realm
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    command:
+      - start-dev
+      - --import-realm
+    
     networks:
       - backend
     ports:
       - "8080:8080"
     volumes:
-      - ./keycloak-config:/opt/keycloak/data/import
-      - keycloak_data:/opt/keycloak/data
+      - ./keycloak-config/import:/opt/keycloak/data/import:ro,Z
+      - keycloak_data:/opt/keycloak/data/
 
   postgres:
     image: postgres:18-alpine
@@ -46,7 +51,8 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./postgres-init:/docker-entrypoint-initdb.d
+      - ./postgres-init/init.sql:/docker-entrypoint-initdb.d/init.sql:ro,Z
+
   redis:
     image: redis:latest
     container_name: redis-cache
@@ -62,7 +68,7 @@ services:
     networks:
       - backend
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,Z
     ports:
       - "9090:9090"
 
@@ -76,7 +82,8 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_started
 
 volumes:
   pgdata:
